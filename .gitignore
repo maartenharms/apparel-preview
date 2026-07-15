@@ -1,0 +1,10 @@
+build/
+install/
+.vs/
+out/
+compile_commands.json
+tools/build.log
+release/
+
+# Internal development notes; kept local, not published to the public repo.
+docs/

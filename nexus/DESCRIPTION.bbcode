@@ -1,0 +1,71 @@
+[color=#c9a875][size=6][font=Arial][b]APPAREL PREVIEW[/b][/font][/size][/color]
+[i]See armor, clothing, and jewelry on your character before you equip it, straight from the menu. SE and AE.[/i]
+[line]
+
+
+Skyrim makes you equip an item to find out how it looks on you. That is fine for one helmet, but not for a whole merchant's stock, chests full of loot or browsing apparel via tools like Add Item Menu. Apparel Preview shows gear on your character while you are still browsing, without equipping anything.
+
+[b]Hover on an item and press C when in your inventory, a merchant's stock, or a container, to see it on your character without equipping it.[/b]
+
+[color=#c9a875][size=5][b]FEATURES[/b][/size][/color]
+[list]
+[*]Preview armor, clothing, and jewelry on your character without equipping it. It is visual only; nothing you are actually wearing changes.[/*]
+[*]Works in the inventory, barter, and container menus.[/*]
+[*]A native "Preview" button on the item card, so it sits right next to the game's own prompts and matches your UI.[/*]
+[*]Controller and keyboard, with the correct button glyph shown for your device.[/*]
+[*]The preview ends cleanly when you equip the item, close the menu, or move on to something that cannot be previewed.[/*]
+[*]Configurable via an in game menu.[/*]
+[/list]
+
+[color=#c9a875][size=5][b]HOW TO USE IT[/b][/size][/color]
+[list]
+[*][b]Keyboard[/b]: Press the item zoom key (C by default)[/*]
+[*][b]Controller[/b]: Press right joystick[/*]
+[/list]
+
+[color=#c9a875][size=5][b]REQUIREMENTS[/b][/size][/color]
+[list]
+[*]Skyrim Special Edition [b]1.5.97[/b] ("SE") [b]or[/b] Anniversary Edition [b]1.6.1130+[/b] ("AE"). One build covers both.[/*]
+[*][url=https://skse.silverlock.org/]SKSE64[/url] for your runtime.[/*]
+[*][url=https://www.nexusmods.com/skyrimspecialedition/mods/32444]Address Library for SKSE Plugins[/url] (SE or AE database to match)[/*]
+[*][url=https://www.nexusmods.com/skyrimspecialedition/mods/178689]Show Player In Inventory[/url] or [url=https://www.nexusmods.com/skyrimspecialedition/mods/81291]Show Player In Menus[/url] (So you can actually see the previewed equipment on your character).[/*]
+[*][url=https://www.nexusmods.com/skyrimspecialedition/mods/181603]FLICK[/url] for the in-game settings panel. Without it, the settings are available through the INI.[/*]
+[/list]
+
+[color=#c9a875][size=5][b]HIGHLY RECOMMENDED[/b][/size][/color]
+[list]
+[*]Menu Studio (Pause the world when you open a menu and keep your character live and posed, in a clean studio of your choosing).[/*]
+[*]Fitting Room (Change how your gear looks without changing what it does. Save outfits and wear them over your real equipment, like transmog in The Elder Scrolls Online).[/*]
+[/list]
+
+[color=#c9a875][size=5][b]INSTALLATION[/b][/size][/color]
+Install with a mod manager (Mod Organizer 2 or Vortex) like any other SKSE plugin, or copy the [font=Courier New]SKSE/Plugins[/font] folder into your Data folder manually. There is no plugin file (.esp). Safe to add or remove mid playthrough; it makes no changes to your save.
+
+[color=#c9a875][size=5][b]KNOWN LIMITATIONS[/b][/size][/color]
+[list]
+[*][b]The item needs a body model for your character.[/b] Apparel Preview shows the item on the body you actually have installed; gear built only for a body type you do not use cannot be shown, and the mod tells you so instead of previewing nothing.[/*]
+[*][b]Beta.[/b] AE support is new. If you hit a crash, please post [font=Courier New]crash-*.log[/font] and [font=Courier New]ApparelPreview.log[/font] from [font=Courier New]Documents\My Games\Skyrim Special Edition\SKSE\[/font].[/*]
+[/list]
+
+[color=#c9a875][size=5][b]COMPATIBILITY[/b][/size][/color]
+[list]
+[*]No scripts, no .esp, no save game changes. Safe to add or remove at any point.[/*]
+[*]Purely a render-side overlay: it never equips anything and never touches your inventory, so it cannot break gear, enchantments, or quests.[/*]
+[*]Compatible with: Helmet Toggle 2, Skyrim Souls RE & Fitting Room.[/*]
+[/list]
+
+[color=#c9a875][size=5][b]HOW IT WORKS[/b][/size][/color]
+Apparel Preview hooks the item card and builds the highlighted item's 3D directly onto your character's body as a visual layer, without equipping it and without changing your inventory. Because it is a render side overlay, everything you are actually wearing stays exactly as it was, and removing the mod leaves no trace.
+
+[color=#c9a875][size=5][b]SOURCE CODE[/b][/size][/color]
+This mod is open source under the GPL-3.0 license: [url=https://github.com/maartenharms/apparel-preview]github.com/maartenharms/apparel-preview[/url]
+
+[color=#c9a875][size=5][b]CREDITS & THANKS[/b][/size][/color]
+[list]
+[*][b]Nithogg[/b]: the preview icon art.[/*]
+[*][b]JerryYOJ[/b]: [url=https://www.nexusmods.com/skyrimspecialedition/mods/174136]Dynamic Inventory Icon Injector[/url], the optional dependency that shows the eye icon on previewable rows.[/*]
+[*][b]The SKSE team[/b]: the Skyrim Script Extender.[/*]
+[*][b]powerof3 and the CommonLibSSE-NG contributors[/b]: [url=https://github.com/CharmedBaryon/CommonLibSSE-NG]CommonLibSSE-NG[/url].[/*]
+[*][b]meh321[/b]: [url=https://www.nexusmods.com/skyrimspecialedition/mods/32444]Address Library for SKSE Plugins[/url].[/*]
+[*][b]Shibbles, Julez and Decize[/b]: For playtesting.[/*]
+[/list]

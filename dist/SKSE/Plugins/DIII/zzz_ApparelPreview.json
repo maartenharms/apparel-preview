@@ -1,0 +1,15 @@
+{
+    "$schema": "https://raw.githubusercontent.com/JerryYOJ/Dynamic-Inventory-Icon-Injector-SKSE/refs/heads/master/schema.json",
+    "rules": [
+        {
+            "icon": {
+                "source": "ApparelPreview/previewicon.swf",
+                "label": "PreviewIcon"
+            },
+            "match": {
+                "formType": "Armor",
+                "apparelPreviewed": true
+            }
+        }
+    ]
+}
