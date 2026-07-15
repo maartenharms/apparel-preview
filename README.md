@@ -20,7 +20,7 @@ SKSE plugin for Skyrim Special Edition **1.5.97** and Anniversary Edition **1.6.
 - Skyrim SE **1.5.97** or AE **1.6.1130+**. VR and older runtimes are refused.
 - [SKSE64](https://skse.silverlock.org/) for your runtime
 - [Address Library for SKSE Plugins](https://www.nexusmods.com/skyrimspecialedition/mods/32444) (the SE or AE database to match)
-- [Show Player In Inventory](https://www.nexusmods.com/skyrimspecialedition/mods/178689) or [Show Player In Menus](https://www.nexusmods.com/skyrimspecialedition/mods/81291), so you can see yourself while the menu is open
+- [Show Player In Inventory](https://www.nexusmods.com/skyrimspecialedition/mods/178689) So you can actually see your character.
 - Optional: [FLICK](https://www.nexusmods.com/skyrimspecialedition/mods/181603) for the in-game settings panel; the mod is fully configurable through the INI without it
 - Optional: [Dynamic Inventory Icon Injector](https://www.nexusmods.com/skyrimspecialedition/mods/174136) for the gold eye icon on previewed rows
 
