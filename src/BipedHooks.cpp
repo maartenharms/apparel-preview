@@ -68,7 +68,19 @@ namespace AP {
             g_origVisitWorn(a_changes, a_visitor);  // vanilla worn skinning
 
             if (forPlayer && session.IsActive()) {
-                auto*      awm      = t_pass.awmFromApply ? t_pass.awmFromApply : a_rdiAWM;
+                // AWM: prefer the value captured from the vanilla apply call;
+                // otherwise derive it register-free from the actor - the
+                // address of the 3rd-person biped smart-pointer field is
+                // byte-for-byte the holder shape ApplyArmorAddon consumes
+                // (its per-ARMA callee only ever *reads* *holder; decompile-
+                // verified on BOTH 1.5.97 and 1.6.1170, 2026-07-15). The old
+                // rdi fallback is dead: at the AE site (24725+0x1EF) rdi does
+                // not hold the AWM, so injecting through it would be garbage.
+                auto* awm = t_pass.awmFromApply;
+                if (!awm) {
+                    awm = reinterpret_cast<REAug::ActorWeightModel*>(
+                        const_cast<RE::BSTSmartPointer<RE::BipedAnim>*>(&player->GetBiped1(false)));
+                }
                 auto*      base     = player->GetActorBase();
                 const bool isFemale = base && base->IsFemale();
                 auto*      race     = player->GetRace();
@@ -76,7 +88,7 @@ namespace AP {
                     session.VisitPreviewArmors([&](RE::TESObjectARMO* armo) {
                         const bool ok = REAug::ApplyArmorAddon(armo, race, awm, isFemale);
                         spdlog::debug("inject '{}' via {} awm={} -> {}", armo->GetName(),
-                                      t_pass.awmFromApply ? "captured" : "rdi",
+                                      t_pass.awmFromApply ? "captured" : "actor",
                                       static_cast<const void*>(awm), ok);
                     });
                 } else {
@@ -121,9 +133,19 @@ namespace AP {
     }
 
     void BipedHooks::InstallInjection() {
-        const REL::Relocation<std::uintptr_t> site{ REL::RelocationID(24231, 24735), 0x81 };
+        // SE: the worn skinning exec (15856) is called from the small wrapper
+        // 24231 at +0x81. AE: the compiler INLINED that wrapper into the
+        // rebuild parent 24725 - the old 24735 still exists in the binary but
+        // has ZERO callers (whole-exe xref, 2026-07-15; Ivy's 1.6.1170 diag
+        // log showed the hook installed yet "wornpass ran 0x"). The live AE
+        // site is the inlined call to 16096 at 24725+0x1EF; same displaced-
+        // call ABI (rcx = InventoryChanges*, rdx = visitor&). NOTE: rbx/rdi
+        // at the AE site are NOT the SE-era register contract - the stub still
+        // forwards them, but they are diagnostics-only (see HandleWornPass).
+        const REL::Relocation<std::uintptr_t> site{ REL::RelocationID(24231, 24725),
+                                                    REL::VariantOffset(0x81, 0x1EF, 0x81) };
         if (*reinterpret_cast<std::uint8_t*>(site.address()) != 0xE8) {
-            spdlog::error("BipedHooks: expected E8 at 24231+0x81, found {:02X} - injection NOT installed.",
+            spdlog::error("BipedHooks: expected E8 at the worn-pass site (SE 24231+0x81 / AE 24725+0x1EF), found {:02X} - injection NOT installed.",
                           *reinterpret_cast<std::uint8_t*>(site.address()));
             return;
         }
@@ -137,7 +159,7 @@ namespace AP {
         g_origVisitWorn = reinterpret_cast<VisitWorn_t>(
             trampoline.write_call<5>(site.address(), reinterpret_cast<std::uintptr_t>(stubMem)));
         injectionOk_ = true;
-        spdlog::info("BipedHooks: injection hook installed at 24231+0x81.");
+        spdlog::info("BipedHooks: injection hook installed at SE 24231+0x81 / AE 24725+0x1EF.");
     }
 
     void BipedHooks::InstallCapture() {

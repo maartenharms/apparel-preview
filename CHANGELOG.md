@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.4.2 (2026-07-19)
+
+- Fixed duplicate "Preview" prompts stacking on the item card. Dropping, unequipping or re-equipping an item without moving the highlight left the existing prompt in place and added another, so a second and sometimes a third appeared on the same row. The mod now tracks its own prompt state instead of relying on the menu to clear it.
+- The "Preview" prompt no longer appears on gear you are already wearing. Previewing worn gear shows exactly what is already on screen, so the prompt was noise on most of your armor list. A second, unworn copy of the same piece still offers its preview.
+- The settings panel lines up properly now. Every tick box sat on the wrong side of its row and never matched the sliders above and below it, because the mod was overriding FLICK's own layout instead of leaving it alone. Thanks to Fuzzles for catching it.
+
+## 0.4.1 (2026-07-15)
+
+- Fixed item preview not rendering on Anniversary Edition. The worn-armor pass the mod hooks was inlined into its parent function on AE, so the hook installed but never ran and previews stayed invisible. It now hooks the correct inlined call site (verified against 1.6.1170), and takes the render target from the actor rather than a register that does not carry it on AE. Skyrim SE is unaffected.
+
 ## 0.4.0 (2026-07-15)
 
 - **Anniversary Edition support.** A single build now loads on both Skyrim SE 1.5.97 and AE 1.6.1130+. Every engine hook resolves through the Address Library and RELOCATION_ID; a site whose bytes do not match self-disables rather than crashing.

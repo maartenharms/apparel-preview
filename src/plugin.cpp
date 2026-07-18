@@ -11,7 +11,7 @@
 
 namespace {
     constexpr auto kLogName = "ApparelPreview.log";
-    constexpr auto kVersion = "0.4.0";
+    constexpr auto kVersion = "0.4.2";
 
     void SetupLog() {
         auto path = SKSE::log::log_directory();

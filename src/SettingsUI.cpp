@@ -66,7 +66,7 @@ namespace AP {
 
             // Master switch. Unchecking it live is a real kill: drop any active
             // preview and disarm now rather than waiting for the menu to close.
-            if (FUCK::Checkbox("Enable Apparel Preview", &cfg.enabled, false, false)) {
+            if (FUCK::Checkbox("Enable Apparel Preview", &cfg.enabled)) {
                 dirty = true;
                 if (!cfg.enabled) {
                     MenuWatcher::ForceReset("disabled via settings");
@@ -75,36 +75,36 @@ namespace AP {
             Tip("Master switch. Unchecking it drops any active preview right away.");
 
             FUCK::SeparatorText("Where to preview");
-            dirty |= FUCK::Checkbox("Container menu (looting)", &cfg.enableContainer, false, false);
+            dirty |= FUCK::Checkbox("Container menu (looting)", &cfg.enableContainer);
             Tip("Show previews while looting chests, corpses and containers.");
-            dirty |= FUCK::Checkbox("Barter menu (shopping)", &cfg.enableBarter, false, false);
+            dirty |= FUCK::Checkbox("Barter menu (shopping)", &cfg.enableBarter);
             Tip("Show previews while trading with a merchant.");
-            dirty |= FUCK::Checkbox("Inventory (your own items)", &cfg.enableInventory, false, false);
+            dirty |= FUCK::Checkbox("Inventory (your own items)", &cfg.enableInventory);
             Tip("Show previews in your own inventory.");
 
             FUCK::SeparatorText("Options");
-            dirty |= FUCK::Checkbox("Allow shield preview", &cfg.allowShields, false, false);
+            dirty |= FUCK::Checkbox("Allow shield preview", &cfg.allowShields);
             Tip("Include shields. Some sit oddly on the arm; turn this off to skip them.");
             dirty |= FUCK::Checkbox("Notify when a piece cannot fit your body",
-                                    &cfg.notifyUnfitPreview, false, false);
+                                    &cfg.notifyUnfitPreview);
             Tip("Show a message when a piece has no armour made for your race or "
                 "body, instead of doing nothing.");
 
             FUCK::SeparatorText("Item card");
             dirty |= FUCK::Checkbox("Block the HUD-hiding inspect mode for apparel",
-                                    &cfg.blockApparelInspect, false, false);
+                                    &cfg.blockApparelInspect);
             Tip("Stops the item-zoom inspect view from hiding the HUD when you "
                 "preview apparel.");
             dirty |= FUCK::Checkbox("Block camera POV switching while a preview menu is open",
-                                    &cfg.blockPOVWhileArmed, false, false);
+                                    &cfg.blockPOVWhileArmed);
             Tip("Keeps the POV key or right-stick click from flipping the camera "
                 "while a preview menu is open. For unpaused-menu setups (Skyrim Souls).");
             dirty |= FUCK::Checkbox("Clear the floating item model when previewing",
-                                    &cfg.clearModelOnPreview, false, false);
+                                    &cfg.clearModelOnPreview);
             Tip("Hides the little rotating item model on the card while a preview "
                 "is active.");
             dirty |= FUCK::Checkbox("Never show the item model for apparel",
-                                    &cfg.suppressHoverModel, false, false);
+                                    &cfg.suppressHoverModel);
             Tip("Always hides the rotating item model for apparel, for an "
                 "unobstructed look at your character.");
 

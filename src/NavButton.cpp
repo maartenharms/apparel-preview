@@ -13,8 +13,18 @@ namespace AP::NavButton {
         // Mirrors PreviewSession::Toggle's primary gate: apparel that has an
         // armature for the player's race (fails on UBE/unpatched gear) and is
         // not a disabled shield. HT2's worn-state decline is left to Toggle.
-        bool CanPreview(RE::TESObjectARMO* a_armo) {
+        bool CanPreview(RE::InventoryEntryData* a_entry, RE::TESObjectARMO* a_armo) {
             if (!a_armo) {
+                return false;
+            }
+            // Already wearing it (user, 2026-07-18: "if we have gear equipped
+            // the prompt doesn't show because well, we have that piece of gear
+            // already equipped"). Previewing worn gear would render exactly what
+            // is on screen already, so the prompt is pure noise on every armor
+            // row the player has equipped. IsWorn reads the entry's own extra
+            // lists, so it follows the hovered STACK rather than the form -
+            // a second unworn copy of the same armor still offers a preview.
+            if (a_entry && a_entry->IsWorn()) {
                 return false;
             }
             auto* player = RE::PlayerCharacter::GetSingleton();
@@ -63,7 +73,61 @@ namespace AP::NavButton {
 
         auto*      entry      = HoverTracker::GetHovered();
         auto*      obj        = entry ? entry->GetObject() : nullptr;
-        const bool canPreview = obj && CanPreview(obj->As<RE::TESObjectARMO>());
+        const bool canPreview = obj && CanPreview(entry, obj->As<RE::TESObjectARMO>());
+
+        // ---- IDEMPOTENCY --------------------------------------------------
+        // Field 2026-07-18: "duplicated or even triple preview prompts when I
+        // drop an item or unequip gear like a helmet and reequip it without
+        // moving which item is highlighted."
+        //
+        // The dedup scan below is DEAD and cannot be repaired where it stands.
+        // It searches `navPanel.buttons`, which on this UI is SkyUI's fixed
+        // POOL of 6 stage clips, not a data array. `addButton` consumes our
+        // {text, apPreview, controls} object into a pooled clip's internals, so
+        // the marker never lands anywhere the scan can read: the field log has
+        // found=0 on 255 of 255 samples, i.e. EVERY refresh re-added blindly.
+        //
+        // The highlight detail in the report is the whole mechanism. SkyUI's
+        // only reset primitive is clearButtons() (the panel exposes no
+        // removeButton), and it runs on the SELECTION-CHANGE path. Move the
+        // highlight and the panel clears before our deferred add lands, so one
+        // prompt survives and the stray adds are absorbed. Mutate the inventory
+        // on the SAME row and the item card is re-requested - our hook fires
+        // again - while SkyUI never clears, so each re-request stacks another
+        // prompt. It tops out at "triple" because the pool holds 6 and three
+        // are already vanilla, which is why it is never quadruple.
+        //
+        // So the guard has to come from OUR state rather than from reading the
+        // panel. Memoise the selection and re-add only when it genuinely
+        // changed, or when the panel's own live counter proves a clear ran.
+        std::uint32_t keyCode = InputListener::LastInputWasGamepad()
+                                    ? InputListener::ResolvedPadScaleformKey()
+                                    : 0;
+        if (keyCode == 0) {
+            keyCode = InputListener::KeyboardKey();
+        }
+        double liveCount = -1.0;
+        if (RE::GFxValue bc; navPanel.GetMember("_buttonCount", &bc) && bc.IsNumber()) {
+            liveCount = bc.GetNumber();
+        }
+        static const void*   s_lastView       = nullptr;
+        static const void*   s_lastEntry      = nullptr;
+        static bool          s_lastCanPreview = false;
+        static std::uint32_t s_lastKeyCode    = 0;
+        static double        s_countAfterAdd  = -1.0;
+        static bool          s_added          = false;
+        if (view != s_lastView) {
+            s_lastView = view;  // new movie: nothing we added survives it
+            s_added    = false;
+        }
+        // The count test is deliberately an EXACT match, not >=. If SkyUI
+        // cleared and rebuilt, ours is gone and the count differs, so we re-add.
+        // Erring this way costs at worst a duplicate (cosmetic, and the old
+        // behaviour) whereas erring the other way loses the prompt entirely.
+        if (s_added && entry == s_lastEntry && canPreview == s_lastCanPreview &&
+            keyCode == s_lastKeyCode && liveCount >= 0.0 && liveCount == s_countAfterAdd) {
+            return;  // same row, same glyph, panel untouched since our add
+        }
 
         // Find ALL of our buttons in the nav panel's live button array. A list
         // rebuild (dropping/transferring an item) can re-emit the panel with a
@@ -151,6 +215,14 @@ namespace AP::NavButton {
             }
         }
 
+        // ⚠ LANDMINE. This splices `navPanel.buttons`, which on this UI is
+        // SkyUI's FIXED POOL of 6 stage clips - not a list of our own entries.
+        // It is harmless today only because the scan above can never match, so
+        // `found` is always empty and this never runs. If anyone ever "fixes"
+        // the scan so it does match, this will start permanently shrinking the
+        // pool (6 -> 5 -> 4 ...) and break the bottom bar for the rest of the
+        // menu session. Removal must NOT go through here: prompt removal on a
+        // non-previewable row already works, by way of SkyUI's own clear.
         const auto spliceAt = [&](std::uint32_t a_idx) {
             RE::GFxValue args[2]{ RE::GFxValue{ static_cast<double>(a_idx) }, RE::GFxValue{ 1.0 } };
             buttons.Invoke("splice", nullptr, args, 2);
@@ -165,13 +237,8 @@ namespace AP::NavButton {
         }
         const bool present = !found.empty();
 
+        s_added = false;  // any path that does not add must leave this false
         if (canPreview) {
-            std::uint32_t keyCode = InputListener::LastInputWasGamepad()
-                                        ? InputListener::ResolvedPadScaleformKey()
-                                        : 0;
-            if (keyCode == 0) {
-                keyCode = InputListener::KeyboardKey();
-            }
             if (present) {
                 // Keep the single button; sync its key glyph to the device.
                 if (RE::GFxValue controls;
@@ -192,6 +259,21 @@ namespace AP::NavButton {
                 arg.SetMember("controls", controls);
                 navPanel.Invoke("addButton", nullptr, &arg, 1);
                 changed = true;
+                // Remember exactly what we just added against, including the
+                // panel's live counter READ BACK after the add - that read-back
+                // is the reference the next refresh compares to, and it is the
+                // only thing that can tell us a clearButtons() happened.
+                s_lastEntry      = entry;
+                s_lastCanPreview = canPreview;
+                s_lastKeyCode    = keyCode;
+                s_added          = true;
+                s_countAfterAdd  = -1.0;
+                if (RE::GFxValue bc2;
+                    navPanel.GetMember("_buttonCount", &bc2) && bc2.IsNumber()) {
+                    s_countAfterAdd = bc2.GetNumber();
+                }
+                spdlog::debug("navbtn: added (entry={} keyCode={} countAfterAdd={:.0f})",
+                              static_cast<const void*>(entry), keyCode, s_countAfterAdd);
                 // DIAGNOSTIC (non-destructive): addButton did NOT grow
                 // `navPanel.buttons` (field: size stayed 6 after add), so our
                 // Preview button lives in a DIFFERENT container than the one the
