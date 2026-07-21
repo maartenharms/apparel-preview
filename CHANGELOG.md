@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.4.3 (2026-07-22)
+
+**New**
+
+- **Apparel Preview now runs on the Anniversary Edition versions between 1.6.317 and 1.6.1129.** Those versions used to be refused outright, with Skyrim reporting the mod as incompatible during load. Apparel Preview now checks its own engine addresses against your build when the game starts, and still declines cleanly if that check fails rather than loading and previewing nothing. The result is written to the log.
+
+**Fixed**
+
+- **Opening the Fitting Room editor clears your hover preview again.** The two mods talk to each other so the editor starts from your true look rather than from whatever you were previewing. That link broke when Fitting Room was renamed and has been silently doing nothing since; Apparel Preview was still listening for the old name.
+
+**Known**
+
+- On the Anniversary Edition versions between 1.6.317 and 1.6.1129 there is no in-game settings panel, because FLICK has no build for them. Everything else works, and every setting is in the mod's INI.
+
 ## 0.4.2 (2026-07-19)
 
 - Fixed duplicate "Preview" prompts stacking on the item card. Dropping, unequipping or re-equipping an item without moving the highlight left the existing prompt in place and added another, so a second and sometimes a third appeared on the same row. The mod now tracks its own prompt state instead of relying on the menu to clear it.

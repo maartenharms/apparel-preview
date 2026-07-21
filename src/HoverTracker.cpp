@@ -5,6 +5,7 @@
 #include "NavButton.h"
 #include "PreviewSession.h"
 #include "Settings.h"
+#include "VersionCheck.h"
 
 #include <thread>
 
@@ -23,8 +24,13 @@ namespace AP {
         // ItemCard hover hook. On AE 1.6.1170 this call moved to +0x22C (the AE
         // function 51897 has extra early-body code); the hooked instruction
         // stream is byte-identical to SE 51019 (SE +0x114 / AE +0x22C) (verified vs the AE binary).
-        const REL::Relocation<std::uintptr_t> site{ REL::RelocationID(51019, 51897),
-                                                    REL::VariantOffset(0x114, 0x22C, 0x114) };
+        const auto callOffset = VersionCheck::HoverTrackerCallOffset();
+        if (callOffset == 0) {
+            spdlog::error("HoverTracker: no hover call site on this runtime - hook NOT "
+                          "installed; hovering will not start a preview.");
+            return;
+        }
+        const REL::Relocation<std::uintptr_t> site{ REL::RelocationID(51019, 51897), callOffset };
         if (*reinterpret_cast<std::uint8_t*>(site.address()) != 0xE8) {
             spdlog::error("HoverTracker: expected E8 at 51019 (SE +0x114 / AE +0x22C), found {:02X} - hook NOT installed.",
                           *reinterpret_cast<std::uint8_t*>(site.address()));

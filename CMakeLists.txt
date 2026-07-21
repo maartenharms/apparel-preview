@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.21)
 # "Apparel Preview" - preview armor on the player in Container/Barter menus
 # without equipping. One CommonLibSSE-NG DLL for SE 1.5.97 + AE 1.6.1130+
 # (AE offsets verified against the 1.6.1170 binary).
-project(ApparelPreview VERSION 0.4.2 LANGUAGES CXX)
+project(ApparelPreview VERSION 0.4.3 LANGUAGES CXX)
 
 find_package(CommonLibSSE CONFIG REQUIRED)
 # jsoncpp's exported config predates CMake 3.5's policy floor.
@@ -16,6 +16,8 @@ add_commonlibsse_plugin(${PROJECT_NAME}
     SOURCES
         src/PCH.h
         src/plugin.cpp
+        src/VersionCheck.h
+        src/VersionCheck.cpp
         src/PreviewSet.h
         src/Settings.h
         src/Settings.cpp

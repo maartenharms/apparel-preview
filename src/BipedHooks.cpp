@@ -3,6 +3,7 @@
 #include "MenuWatcher.h"
 #include "PreviewSession.h"
 #include "REAugments.h"
+#include "VersionCheck.h"
 
 #include <xbyak/xbyak.h>
 
@@ -142,8 +143,16 @@ namespace AP {
         // call ABI (rcx = InventoryChanges*, rdx = visitor&). NOTE: rbx/rdi
         // at the AE site are NOT the SE-era register contract - the stub still
         // forwards them, but they are diagnostics-only (see HandleWornPass).
-        const REL::Relocation<std::uintptr_t> site{ REL::RelocationID(24231, 24725),
-                                                    REL::VariantOffset(0x81, 0x1EF, 0x81) };
+        // ⚠ LOCATED, NOT HARDCODED. On AE the parent calls the visit
+        // function TWICE and only one is the worn pass; VersionCheck picks the
+        // one handed the worn-visitor vtable. See VersionCheck.cpp.
+        const auto callOffset = VersionCheck::WornPassCallOffset();
+        if (callOffset == 0) {
+            spdlog::error("BipedHooks: no worn-pass call site on this runtime - injection NOT "
+                          "installed.");
+            return;
+        }
+        const REL::Relocation<std::uintptr_t> site{ REL::RelocationID(24231, 24725), callOffset };
         if (*reinterpret_cast<std::uint8_t*>(site.address()) != 0xE8) {
             spdlog::error("BipedHooks: expected E8 at the worn-pass site (SE 24231+0x81 / AE 24725+0x1EF), found {:02X} - injection NOT installed.",
                           *reinterpret_cast<std::uint8_t*>(site.address()));
@@ -163,7 +172,13 @@ namespace AP {
     }
 
     void BipedHooks::InstallCapture() {
-        const REL::Relocation<std::uintptr_t> site{ REL::RelocationID(24232, 24736), 0x302 };
+        const auto callOffset = VersionCheck::ApplyAddonCallOffset();
+        if (callOffset == 0) {
+            spdlog::info("BipedHooks: no ApplyArmorAddon capture site on this runtime; the "
+                         "capture is a diagnostic, so everything else works.");
+            return;
+        }
+        const REL::Relocation<std::uintptr_t> site{ REL::RelocationID(24232, 24736), callOffset };
         if (*reinterpret_cast<std::uint8_t*>(site.address()) != 0xE8) {
             // Diagnostic-only hook. Vanilla has a `call ApplyArmorAddon` (E8)
             // here; another load-order plugin has patched it (0x90/NOP seen in
@@ -186,8 +201,13 @@ namespace AP {
         // Worn-mask GetWornMask call. On AE 1.6.1170 the call sits 4 bytes later
         // (+0x80) - the function itself matches SE 24220 1:1 (verified by
         // call-sequence alignment against the AE binary).
-        const REL::Relocation<std::uintptr_t> site{ REL::RelocationID(24220, 24724),
-                                                    REL::VariantOffset(0x7C, 0x80, 0x7C) };
+        const auto callOffset = VersionCheck::WornMaskCallOffset();
+        if (callOffset == 0) {
+            spdlog::error("BipedHooks: no worn-mask call site on this runtime - mask shim NOT "
+                          "installed.");
+            return;
+        }
+        const REL::Relocation<std::uintptr_t> site{ REL::RelocationID(24220, 24724), callOffset };
         if (*reinterpret_cast<std::uint8_t*>(site.address()) != 0xE8) {
             spdlog::error("BipedHooks: expected E8 at 24220 (SE +0x7C / AE +0x80), found {:02X} - mask shim NOT installed.",
                           *reinterpret_cast<std::uint8_t*>(site.address()));
